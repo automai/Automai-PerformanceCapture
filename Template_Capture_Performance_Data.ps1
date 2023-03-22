@@ -66,7 +66,8 @@ foreach ($machine in $machines) {
                 $testDuration,
                 $machine,
                 $counters,
-                $networkCapture
+                $networkCapture,
+                $influxOrg
             )
                        
             #If network needs to be captured, grab the network details on the machines and capture the metrics
@@ -123,7 +124,7 @@ foreach ($machine in $machines) {
 
         #Start performance capture process for given VM
         Write-Host "Starting performance capture for $($machine.MachineName) using template $($machine.Performance_Template)"
-        Start-Job -Name "$machine-job" -ScriptBlock $scriptBlock -ArgumentList $influxDB,$influDBToken,$testDuration,$machine,$counters,$networkCapture | Out-Null
+        Start-Job -Name "$machine-job" -ScriptBlock $scriptBlock -ArgumentList $influxDB,$influDBToken,$testDuration,$machine,$counters,$networkCapture,$influxOrg | Out-Null
 
     } catch {
         Write-Host $_ -ForegroundColor Red
