@@ -1,0 +1,5 @@
+{
+    "engine-path": ".\\engine",
+    "sqlite-path": ".\\influxd.sqlite",
+    "bolt-path": ".\\influxd.bolt"
+}
