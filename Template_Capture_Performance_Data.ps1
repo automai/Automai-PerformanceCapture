@@ -20,6 +20,7 @@ TBD
 $influxDB = "http://##HOSTNAME##:8086" #Influx database uri
 $influDBToken = "##TOKEN##" #API token for InfluxDB
 $testDuration = "14400" # Duration in seconds
+$influxOrg = "##ORG##"
 
 #Latest Influx module is not signed
 Set-ExecutionPolicy Bypass -Confirm:$false -Force
@@ -113,7 +114,7 @@ foreach ($machine in $machines) {
                 
 
                 foreach ($table in $metrics) {
-                    Write-Influx -Measure Server -Tags @{Server=$machine.MachineName} -Metrics $table -Server $influxDB -Organisation LJC -Bucket Performance -Token $influDBToken
+                    Write-Influx -Measure Server -Tags @{Server=$machine.MachineName} -Metrics $table -Server $influxDB -Organisation $influxOrg -Bucket Performance -Token $influDBToken
                 }
                 $x++
             } Until ($x -eq $testDuration)
