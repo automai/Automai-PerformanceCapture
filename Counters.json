@@ -1,0 +1,10 @@
+﻿{
+    "Counters":  [
+                     "\\Memory\\Available Bytes",
+                     "\\Memory\\Committed Bytes",
+                     "\\Processor Information(_Total)\\% Processor Time",
+                     "\\LogicalDisk(C:)\\Disk Reads/sec",
+                     "\\LogicalDisk(C:)\\Disk Writes/sec",
+                     "\\LogicalDisk(C:)\\Current Disk Queue Length"
+                 ]
+}

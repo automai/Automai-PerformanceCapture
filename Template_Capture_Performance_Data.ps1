@@ -17,7 +17,7 @@ TBD
 
 #>
 #latest influx DB module - https://github.com/markwragg/PowerShell-Influx
-$influxDB = "http://INFLUXDB-01.ctxlab.local:8086" #Influx database uri
+$influxDB = "http://##HOSTNAME##:8086" #Influx database uri
 $influDBToken = "##TOKEN##" #API token for InfluxDB
 $testDuration = "14400" # Duration in seconds
 
@@ -125,7 +125,7 @@ foreach ($machine in $machines) {
         Start-Job -Name "$machine-job" -ScriptBlock $scriptBlock -ArgumentList $influxDB,$influDBToken,$testDuration,$machine,$counters,$networkCapture | Out-Null
 
     } catch {
-        Write-Host _$ -ForegroundColor Red
+        Write-Host $_ -ForegroundColor Red
         Write-Host "There was an error during the performance capture process of $($machine.MachineName)" -ForegroundColor Red
     }
 }
