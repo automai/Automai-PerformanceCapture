@@ -333,7 +333,7 @@ Function Configure-InfluxDB {
     }
 }
 
-Function Configure-GrafanaDataSource {
+Function Configure-Grafana {
     param (
         [Parameter(Mandatory)]   
         $influxOrg,
@@ -342,8 +342,8 @@ Function Configure-GrafanaDataSource {
         [Parameter(Mandatory)]
         $grafanaFolder 
     )
-    $datasourceDownload = "https://raw.githubusercontent.com/automai/Automai-PerformanceCapture/main/template_datasource.yml"
-    
+    $datasourceDownload = "https://raw.githubusercontent.com/automai/Automai-PerformanceCapture/main/template_datasource.yml"    
+
     try {
         Write-Log -Message "Downloading grafana template datasource for influxDB" -Level Info
         Invoke-WebRequest -UseBasicParsing -Uri $datasourceDownload -OutFile "$($grafanaFolder)\conf\provisioning\datasources\influx_datasource.yml"
@@ -358,6 +358,45 @@ Function Configure-GrafanaDataSource {
     }
 }
 
+Function Install-GrafanaDashboard {
+    param (
+        [Parameter(Mandatory)]   
+        $installFolder
+    )
+
+    $dashboardDownload = "https://github.com/automai/Automai-PerformanceCapture/blob/main/Template_Performance-Capture.json"
+    try {
+        Write-Log -Message "Downloading grafana template dashboard" -Level Info
+        Invoke-WebRequest -UseBasicParsing -Uri $datasourceDownload -OutFile "$($installFolder)\template_Perfromance-Capture.json"
+        if (Test-Path "$($installFolder)\template_Perfromance-Capture.json") {
+            Write-Log -Message "Template dashboard downloaded successfully, proceeding to replace placeholders" -Level Info
+            Write-Log -Message "Proceeding with Dashboard import for Grafana" -Level Info
+            #Prepare Auth Headers
+            $pair = "admin:admin"
+            $bytes = [System.Text.Encoding]::ASCII.GetBytes($pair)
+            $base64 = [System.Convert]::ToBase64String($bytes)
+            $basicAuthValue = "Basic $base64"
+            $headers = @{ Authorization = $basicAuthValue }
+
+            #First Get the Data Source UID
+            $datasourceURI = "http://localhost:3000/api/datasources"
+            $datasource = $(Invoke-WebRequest -Uri $datasourceURI -Method Get -Headers $headers -ContentType "application/json" -Verbose).content | ConvertFrom-Json
+
+            #Replace all placeholders
+            (Get-Content "$($installFolder)\template_Perfromance-Capture.json").replace('##HOSTNAME##',$($env:computername).replace('##UID##',$datasource.uid)) | Out-File "$($installFolder)\template_Perfromance-Capture.json" -Force
+
+            #Import the dashboard
+            $dashboardURI = "http://localhost:3000/api/dashboards/db"
+            $inFile = "$($installFolder)\template_Perfromance-Capture.json"
+            $importResult = Invoke-WebRequest -Uri $dashboardURI -Method Post -infile $infile -Headers $headers -ContentType "application/json"
+
+        } else {
+            Throw "There has been an error downloading the dashboard for Grafana, this may need to be done manually."
+        }
+    } catch {
+        Write-Log -Message $_ -Level Error
+    }
+}
 Function Configure-PerformanceCapture {
     param (
         [Parameter(Mandatory)]   
@@ -465,10 +504,13 @@ try {
     $configResult = Configure-InfluxDB -bucketName "Performance" -orgName $influxOrgName -newAdminPassword $influxAdminPassword -retentionPeriod 0 -userName "influx_admin"
 
     #Pre-Configure Grafana Datasource
-    Configure-GrafanaDataSource -influxOrg $influxOrgName -authToken $configResult.auth.token -grafanaFolder $grafanaFolder.rootFolder.FullName
+    Configure-Grafana -influxOrg $influxOrgName -authToken $configResult.auth.token -grafanaFolder $grafanaFolder.rootFolder.FullName
 
     #Install Grafana as a Service and Start
     Install-Service -nssmExe $nssmFolder.exeLocation.FullName -serviceName "Grafana Server" -serviceDisplayName "Grafana Server" -serviceDescription "Grafana Server" -executableFolder $grafanaFolder.exeLocation.FullName   
+
+    #Import Dashboard Template for Grafana
+    Install-GrafanaDashboard -installFolder $installFolder
 
     #Download performance capture script
     Configure-PerformanceCapture -installFolder $installFolder -authToken $configResult.auth.token -influxOrg $influxOrgName
