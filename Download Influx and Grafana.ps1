@@ -7,9 +7,9 @@
     [Parameter(Mandatory=$false, HelpMessage = "The date format to be used for log files")]
     $dateFormat = "yyyy-MM-dd_HH-mm",
     [Parameter(Mandatory=$true, HelpMessage = "The organisation name to be displayed in Influx")]   
-    $influxOrgName,
+    $influxOrgName= "Performance",
     [Parameter(Mandatory=$true, HelpMessage = "The password for the influx admin account")]   
-    $influxAdminPassword
+    $influxAdminPassword = "Password100"
 )
 
 #Fixed Variables
