@@ -367,7 +367,7 @@ Function Install-GrafanaDashboard {
     $dashboardDownload = "https://github.com/automai/Automai-PerformanceCapture/blob/main/Template_Performance-Capture.json"
     try {
         Write-Log -Message "Downloading grafana template dashboard" -Level Info
-        Invoke-WebRequest -UseBasicParsing -Uri $datasourceDownload -OutFile "$($installFolder)\template_Perfromance-Capture.json"
+        Invoke-WebRequest -UseBasicParsing -Uri $dashboardDownload -OutFile "$($installFolder)\template_Perfromance-Capture.json"
         if (Test-Path "$($installFolder)\template_Perfromance-Capture.json") {
             Write-Log -Message "Template dashboard downloaded successfully, proceeding to replace placeholders" -Level Info
             Write-Log -Message "Proceeding with Dashboard import for Grafana" -Level Info
