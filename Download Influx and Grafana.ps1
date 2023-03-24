@@ -381,15 +381,17 @@ Function Install-GrafanaDashboard {
             #First Get the Data Source UID
             $datasourceURI = "http://localhost:3000/api/datasources"
             $datasource = $(Invoke-WebRequest -Uri $datasourceURI -Method Get -Headers $headers -ContentType "application/json" -Verbose).content | ConvertFrom-Json
+            if (!($null -eq $datasource.uid)) {
+                Throw "Unable to connect to grafana to get the database details for the template"
+            } else {
+                #Replace all placeholders
+                (Get-Content "$($installFolder)\template_Perfromance-Capture.json").replace('##HOSTNAME##',$($env:computername).replace('##UID##',$($datasource.uid))) | Out-File "$($installFolder)\template_Perfromance-Capture.json" -Force
 
-            #Replace all placeholders
-            (Get-Content "$($installFolder)\template_Perfromance-Capture.json").replace('##HOSTNAME##',$($env:computername).replace('##UID##',$datasource.uid)) | Out-File "$($installFolder)\template_Perfromance-Capture.json" -Force
-
-            #Import the dashboard
-            $dashboardURI = "http://localhost:3000/api/dashboards/db"
-            $inFile = "$($installFolder)\template_Perfromance-Capture.json"
-            $importResult = Invoke-WebRequest -Uri $dashboardURI -Method Post -infile $infile -Headers $headers -ContentType "application/json"
-
+                #Import the dashboard
+                $dashboardURI = "http://localhost:3000/api/dashboards/db"
+                $inFile = "$($installFolder)\template_Perfromance-Capture.json"
+                $importResult = Invoke-WebRequest -Uri $dashboardURI -Method Post -infile $infile -Headers $headers -ContentType "application/json" -Verbose
+            }
         } else {
             Throw "There has been an error downloading the dashboard for Grafana, this may need to be done manually."
         }
@@ -510,7 +512,7 @@ try {
     Install-Service -nssmExe $nssmFolder.exeLocation.FullName -serviceName "Grafana Server" -serviceDisplayName "Grafana Server" -serviceDescription "Grafana Server" -executableFolder $grafanaFolder.exeLocation.FullName   
 
     #Import Dashboard Template for Grafana
-    Install-GrafanaDashboard -installFolder $installFolder
+    #Install-GrafanaDashboard -installFolder $installFolder
 
     #Download performance capture script
     Configure-PerformanceCapture -installFolder $installFolder -authToken $configResult.auth.token -influxOrg $influxOrgName
