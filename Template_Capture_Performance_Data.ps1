@@ -72,7 +72,7 @@ foreach ($machine in $machines) {
                        
             #If network needs to be captured, grab the network details on the machines and capture the metrics
             if ($networkCapture -eq 1) {
-                $adapterNames = Invoke-Command -ComputerName $($machine.MachineName) -ScriptBlock {Get-NetAdapter | Select -ExpandProperty InterfaceDescription | Select -First 1}
+                $adapterNames = Invoke-Command -ComputerName $($machine.MachineName) -ScriptBlock {$(Get-NetAdapter | Select -ExpandProperty InterfaceDescription | Select -First 1).replace('#','_')}
                 $tempCounters = New-Object System.Collections.Generic.List[String]
                 
                 foreach ($counter in $counters) {
@@ -102,7 +102,7 @@ foreach ($machine in $machines) {
                         @{
                             "Memory-$(($counter.path.split("\"))[$metricPlacement])/MB" = [math]::Round($counter.CookedValue,3) /1024 /1024
                         }
-                     } elseif ($counter.path -match "network adapter") {
+                     } elseif ($counter.path -match "network") {
                         @{
                             "Network-$(($counter.path.split("\"))[$metricPlacement])/kb" = [math]::Round($counter.CookedValue,3) /1024
                         }
